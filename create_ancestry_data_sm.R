@@ -179,11 +179,12 @@ summary <- ancestry %>% filter(Pop == "CEU") %>% summarise(PC1_mean =mean(PC1,na
 
 #outliers:
 ancestry %<>% mutate(flag=case_when(
-                       ancestry$PC1 > (summary$PC1_mean + (25*summary$PC1_sd)) ~ TRUE,
-                       ancestry$PC1 < (summary$PC1_mean - (25*summary$PC1_sd)) ~ TRUE,
-                       ancestry$PC2 > (summary$PC2_mean + (25*summary$PC2_sd)) ~ TRUE,
-                       ancestry$PC2 < (summary$PC2_mean - (25*summary$PC2_sd)) ~ TRUE,
+                       ancestry$PC1 > (summary$PC1_mean + (europeanTh*summary$PC1_sd)) ~ TRUE,
+                       ancestry$PC1 < (summary$PC1_mean - (europeanTh*summary$PC1_sd)) ~ TRUE,
+                       ancestry$PC2 > (summary$PC2_mean + (europeanTh*summary$PC2_sd)) ~ TRUE,
+                       ancestry$PC2 < (summary$PC2_mean - (europeanTh*summary$PC2_sd)) ~ TRUE,
                        TRUE ~ FALSE))
+#add PC 3 and 4 ? --> maybe show all PCs plots?
 
 outliers <-ggplot(ancestry, aes(x=PC1,y=PC2, col=Color)) + geom_point() + theme_bw()
 
@@ -193,7 +194,7 @@ display.brewer.all(colorblindFriendly = TRUE)
 rm <- ancestry %>% filter(flag == TRUE) %>% filter(Pop == paste0(name, "samples"))
 P1 <- ggplot(ancestry) + geom_point(aes(x=PC1,y=PC2, col=Pop)) +
   theme_bw()+ geom_point(data=rm, aes(x=PC1,y=PC2, size= 2,shape=8, fill=Pop),show.legend = F) + 
-  scale_color_manual(values = c(ancestry %>% distinct(Color,Pop) %>% arrange(Pop) %>% pull(Color), "red1")) +scale_shape_identity()+ggtitle("25SD from CEU mean")
+  scale_color_manual(values = c(ancestry %>% distinct(Color,Pop) %>% arrange(Pop) %>% pull(Color), "red1")) +scale_shape_identity()+ggtitle(sprintf(%sSD from CEU mean",europeanTh))
 
 ggsave(P1, file=paste0(name,"_ancestry.png"),width = 10, height=10)
 write.table(rm %>% select(IID,FID),file=paste0(name,"_to_remove.txt"), col.names =F, quote=F, row.names = F,sep="\t")
