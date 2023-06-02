@@ -1,0 +1,23 @@
+#--missingness--
+imissTh: 0.05
+mind: "0.05"
+geno: "0.01"
+
+#--relatedness-- 
+genome: "0.9"
+highIBDTh: 0.9 #we don't exclude relatives here, only duplicates 
+PI_HAT: "0.1" #to create a reltaives.txt file, no exclusion here
+
+#--heterozygosity-- 
+hetTh: 3
+
+#--sex-- 
+maleTh: 0.8
+femaleTh: 0.2
+
+#--minor allele frequency and HWE--
+maf: 0.01 
+hwe: "1e-4"
+
+#--european ancestry--
+europeanTh: 10
