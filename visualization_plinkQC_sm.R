@@ -29,8 +29,8 @@ axis_text_size = 5
 axis_title_size = 7
 title_size = 9
 
-imissTh=0.05 #(NOT DEFAULT)
-hetTh=3 #(NOT DEFAULT)
+imissTh=snakemake@params[[1]]
+hetTh=snakemake@params[[3]]
 name <- snakemake@input[1]
 prefix <- gsub("\\.bim$", "", name) #{sample}_h38
 sample <- gsub("_h38\\.bim$", "", name)
@@ -179,8 +179,8 @@ ggsave(p_het_imiss,  file=paste0(sample,"_fail_het_mis_visualization.png"), devi
 
 
 # #sex ------
-maleTh=0.8
-femaleTh=0.2
+maleTh=snakemake@params[[4]]
+femaleTh=snakemake@params[[5]]
 externalSex=NULL
 
 fixMixup=FALSE
@@ -301,7 +301,7 @@ axis_text_size = 5
 axis_title_size = 7
 title_size = 9
 
-highIBDTh = 0.9
+highIBDTh =snakemake@params[[2]]
 
 genome <- read.table(paste0(sample, '_maf.genome'), header=TRUE,
                          as.is=TRUE, stringsAsFactors=FALSE)
