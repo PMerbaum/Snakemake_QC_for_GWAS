@@ -22,8 +22,8 @@ fix_alleles = function(a1_ref, a2_ref, a1_match, a2_match){
                      m_flip[,2] == m_num[,3]), 1, 0)
   action = ifelse(palin == 1 | is.na(m_num[,3]) | is.na(m_num[,4]), "excl",
            ifelse(asis == 1, "asis",
-           ifelse(swap == 1, "swap",
            ifelse(swap == 1 & flip == 1, "flipswap",
+           ifelse(swap == 1, "swap",
            ifelse(flip == 1, "flip", "error")))))
    return(action)
 }
