@@ -4,7 +4,8 @@ configfile: "config_snakemake.yaml"
 rule all:
     input:
         expand("{{sample}}_clean.{ext}", ext=["bim","bed","fam"]),
-        "{sample}_fail_het_mis_visualization.png"
+        "{sample}_fail_het_mis_visualization.png",
+        "{sample}_h38_snp_failedQC.txt"
         
 
 #check which HRC genotype reference to use - 37 or 38! 
