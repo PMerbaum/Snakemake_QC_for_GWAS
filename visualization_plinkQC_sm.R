@@ -351,11 +351,11 @@ genome <- read.table(paste0(sample, '_maf.genome'), header=TRUE,
  comb_all <- NULL
 
  if ("flag" %in% colnames(fail_het)) {
-    comb_all <- rbind(try(fail_het %>% select(IID, flag), silent = TRUE), comb_all)
+    comb_all <- rbind(try(fail_het %>% select(FID, IID, flag), silent = TRUE), comb_all)
  }
  
  if ("flag" %in% colnames(fail_imiss)) {
-    fail_imiss_select <- fail_imiss %>% select(IID, flag)
+    fail_imiss_select <- fail_imiss %>% select(FID, IID, flag)
     for (i in 1:nrow(fail_imiss_select)) {
         iid <- fail_imiss_select$IID[i]
         flag <- fail_imiss_select$flag[i]
@@ -368,7 +368,7 @@ genome <- read.table(paste0(sample, '_maf.genome'), header=TRUE,
  }
 
 if ("flag" %in% colnames(fail_sex)) {
-    fail_sex_select <- fail_sex %>% select(IID, flag)
+    fail_sex_select <- fail_sex %>% select(FID, IID, flag)
     for (i in 1:nrow(fail_sex_select)) {
         iid <- fail_sex_select$IID[i]
         flag <- fail_sex_select$flag[i]
