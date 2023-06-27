@@ -1,5 +1,6 @@
 #--missingness--
 imissTh: 0.05
+lmissTh: 0.01
 mind: "0.05"
 geno: "0.01"
 
@@ -16,8 +17,11 @@ maleTh: 0.8
 femaleTh: 0.2
 
 #--minor allele frequency and HWE--
-maf: 0.01 
+maf: "0.01" 
+mafTh: 0.01
 hwe: "1e-4"
+hweTh: 1e-4
+macTh: 20
 
 #--european ancestry--
 europeanTh: 10
