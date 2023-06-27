@@ -44,6 +44,9 @@ if (!all(names_imiss == names(imiss))) {
              file generated with plink --imiss?")
     }
 fail_imiss <- imiss[imiss$F_MISS > imissTh,]
+if (!is.null(fail_imiss) && nrow(fail_imiss) > 0) {
+    fail_imiss$flag <- paste0("missingness = ", imissTh)
+}
 
 names_het <- c("FID", "IID", "O.HOM.", "E.HOM.", "N.NM.", "F")
 het <- read.table(paste0(sample,'.het'), header=TRUE, as.is=TRUE)
@@ -53,7 +56,10 @@ if (!all(names_het == names(het))) {
     }
 fail_het <- het[het$F < (mean(het$F)  - hetTh*sd(het$F)) |
                         het$F > (mean(het$F) + hetTh*sd(het$F)),]
-
+                
+if (!is.null(fail_het) && nrow(fail_het) > 0) {
+    fail_het$flag <- paste0("heterozygocity more than ", hetTh,"SD")   
+}             
 
 nr_samples <- nrow(imiss)
 imiss$logF_MISS <- log10(imiss$F_MISS)
@@ -206,10 +212,12 @@ title_size = 9
 names_sexcheck <- c("FID", "IID", "PEDSEX", "SNPSEX", "STATUS", "F")
 
 #  sexcheck <- read.table(paste(prefix, ".sexcheck",sep=""),
-   sexcheck <- read.table('plink.sexcheck',
-                           header=TRUE, stringsAsFactors=FALSE)
+sexcheck <- read.table('plink.sexcheck', header=TRUE, stringsAsFactors=FALSE)                           
 sexcheck %<>% filter(SNPSEX != 0)
-fail_sex <- sexcheck %>% filter(STATUS != "PROBLEM")
+fail_sex <- sexcheck %>% filter(STATUS == "PROBLEM")
+if (!is.null(fail_sex) && nrow(fail_sex) > 0) {
+    fail_sex$flag <- "sex ambiguity" 
+} 
 
 sexcheck$LABELSEX <- "Unassigned"
 sexcheck$LABELSEX[sexcheck$PEDSEX == 1] <- "Male"
@@ -337,5 +345,62 @@ genome <- read.table(paste0(sample, '_maf.genome'), header=TRUE,
               axis.title = element_text(size = axis_title_size))
  
 
- ggsave(p_highPI_HAT,  file=paste0(prefix,"relatedness.png"), device='png')
+ ggsave(p_highPI_HAT,  file=paste0(prefix,"_relatedness.png"), device='png')
  
+
+ comb_all <- NULL
+
+ if ("flag" %in% colnames(fail_het)) {
+    comb_all <- rbind(try(fail_het %>% select(IID, flag), silent = TRUE), comb_all)
+ }
+ 
+ if ("flag" %in% colnames(fail_imiss)) {
+    fail_imiss_select <- fail_imiss %>% select(IID, flag)
+    for (i in 1:nrow(fail_imiss_select)) {
+        iid <- fail_imiss_select$IID[i]
+        flag <- fail_imiss_select$flag[i]
+        if (iid %in% comb_all$IID) {
+            comb_all$flag[comb_all$IID == iid] <- paste(comb_all$flag[comb_all$IID == iid], flag, sep = ",")
+        } else {
+            comb_all <- rbind(comb_all, fail_imiss_select[i, ])
+      }
+    }
+ }
+
+if ("flag" %in% colnames(fail_sex)) {
+    fail_sex_select <- fail_sex %>% select(IID, flag)
+    for (i in 1:nrow(fail_sex_select)) {
+        iid <- fail_sex_select$IID[i]
+        flag <- fail_sex_select$flag[i]
+        if (iid %in% comb_all$IID) {
+            comb_all$flag[comb_all$IID == iid] <- paste(comb_all$flag[comb_all$IID == iid], flag, sep = ",")
+        } else {
+            comb_all <- rbind(comb_all, fail_sex_select[i, ])
+        }
+    }
+}
+
+
+#  if ("flag" %in% colnames(fail_imiss)) {
+#     comb_all <- rbind(try(fail_imiss %>% select(IID, flag), silent = TRUE), comb_all)
+#  }
+
+#  if ("flag" %in% colnames(fail_sex)) {
+#     comb_all <- rbind(try(fail_sex %>% select(IID, flag), silent = TRUE), comb_all)
+#  }
+
+ if (!is.null(comb_all)) {
+    saveRDS(comb_all, file = paste0(prefix, "_individuals_failedQC.rds"))
+    write.table(comb_all, file = paste0(prefix, "_individuals_failedQC.txt"), col.names = FALSE, row.names = FALSE, quote = FALSE, sep = "\t")
+ } else {
+    print("No individuals were excluded")
+ }
+
+
+# if (any("flag" %in% colnames(fail_het) && "flag" %in% colnames(fail_imiss) && "flag" %in% colnames(fail_sex))) {
+#   comb_all <- rbind(fail_het2 %>% select(IID, flag), fail_imiss %>% select(IID, flag), fail_sex %>% select(IID, flag))
+#   saveRDS(comb_all, file=paste0(prefix,"_individuals_failedQC.rds"), device='png')
+#   write.table(comb_all %>% pull(IID), file=paste0(prefix,"_individuals_failedQC.txt"), col.names = F, row.names = F, quote = F)
+# } else {
+#   print("No individuals were excluded")
+# }
