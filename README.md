@@ -1,5 +1,5 @@
 # Snakemake_QC_for_GWAS
 
-A Snakemake pipline to perform a pre-QC and QC with visualization for binary genome files (bim, bed, fam).
-The pipeline performs harmonization to HRC, lifting to h38 (if needed) and basic quality control steps via plink. 
-The output of the code are "clean" binary genome files which could be easily converted into a vcf file.
+This Snakemake pipeline performs all necessary pre-QC and QC steps with visualization for binary genome files (bim, bed, fam) that should be stored in data/raw.
+The pipeline harmonizes SNP IDs to HRC, lifts to the required genome build, and runs basic quality control steps via Plink. All parameters might be tailored with a config file.
+The code output is "clean" binary genome files which could be easily converted into a vcf file.
