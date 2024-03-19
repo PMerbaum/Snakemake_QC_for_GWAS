@@ -1,4 +1,4 @@
-name: str_imputation
+name: snakemake_gwas_qc
 channels:
   - bioconda
   - conda-forge

@@ -1,5 +1,5 @@
 #--data file name--
-SAMPLE: ['BROAD_hrc']
+SAMPLE: ['file_name']
 BIMFILE: True
 
 #--missingness--
