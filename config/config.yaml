@@ -1,5 +1,5 @@
 #--data file name--
-SAMPLE: ['file_name']
+SAMPLE: ['BROAD_hrc'] #change to your file name 
 BIMFILE: True
 
 #--missingness--
@@ -10,7 +10,7 @@ geno: "0.01"
 
 #--relatedness-- 
 genome: "0.9"
-highIBDTh: 0.9 #we don't exclude relatives, only duplicates 
+highIBDTh: 0.9 #we don't exclude relatives, only duplicates and monozygotic twins
 PI_HAT: "0.1" #to create a reltaives.txt file, no exclusion here
 
 #--heterozygosity-- 

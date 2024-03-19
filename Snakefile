@@ -2,8 +2,9 @@ configfile: "config/config.yaml"
 bimfile = config["BIMFILE"]
 
 def matching(bimfile):
-    output = [expand("data/processed/{{sample}}_HRCmatched.bim", 
-        sample=config["SAMPLE"])]
+    output = expand("data/processed/{sample}_HRCmatched.{ext}", 
+        ext=["bim","bed","fam"],
+        sample=config['SAMPLE'])
     
     return output
 
