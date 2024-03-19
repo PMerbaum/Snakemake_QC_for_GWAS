@@ -1,0 +1,27 @@
+name: str_imputation
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - argparse=1.4.0
+  - bcftools=1.17
+  - bgenix=1.1.7
+  - bzip2=1.0.8
+  - cyvcf2=0.30.1
+  - numpy=1.19.2
+  - pandas=1.1.3
+  - plink=1.90b6.21
+  - plink2=2.00a3.3
+  - pyliftover=0.3
+  - python=3.6.15
+  - r-base=4.2
+  - r-data.table=1.14.6
+  - r-tidyverse=1.3.2
+  - r-vcfr=1.14
+  - r-hiclimr=2.2.1
+  - r-r.utils=2.12.2
+  - regenie=3.2.9
+  - snakemake-minimal=5.6.0
+  - trtools=4.2.1
+  - vcftools=0.1.16
+  

@@ -1,0 +1,32 @@
+#--data file name--
+SAMPLE: ['BROAD_hrc']
+BIMFILE: True
+
+#--missingness--
+imissTh: 0.05
+lmissTh: 0.01
+mind: "0.05"
+geno: "0.01"
+
+#--relatedness-- 
+genome: "0.9"
+highIBDTh: 0.9 #we don't exclude relatives, only duplicates 
+PI_HAT: "0.1" #to create a reltaives.txt file, no exclusion here
+
+#--heterozygosity-- 
+hetTh: 3
+
+#--sex-- 
+maleTh: 0.8
+femaleTh: 0.2
+
+#--minor allele frequency and HWE--
+maf: "0.01" 
+mafTh: 0.01
+hwe: "1e-4"
+hweTh: 1e-4
+macTh: 20
+
+#--european ancestry--
+europeanTh: 10
+
