@@ -2,9 +2,11 @@ configfile: "config/config.yaml"
 bimfile = config["BIMFILE"]
 
 def matching(bimfile):
-    output = expand("data/processed/{sample}_HRCmatched.{ext}", 
-        ext=["bim","bed","fam"],
-        sample=config['SAMPLE'])
+    output = [expand("data/results/{sample}_QC_chr{chromosome}.vcf.gz",
+        #expand("data/processed/{sample}_HRCmatched.{ext}", 
+        #ext=["bim","bed","fam"],
+        chromosome=config['CHROMOSOMES'],
+        sample=config['SAMPLE'])] 
     
     return output
 
@@ -33,6 +35,9 @@ rule exclude_non_hrc:
         expand("data/processed/{{sample}}_{ext}", ext=["snps_exclude.txt", "snps_flip.txt", "snps_update.txt"])
     output:
         expand("data/processed/{{sample}}_hrc_ex.{ext}", ext=["bim","bed","fam"])
+    threads: 1
+    resources: mem_mb=15000, time=600
+
     params:
         in_prefix = lambda wildcards, input: input[0][:-4],
         out_prefix = lambda wildcards, output: output[0][:-4],
@@ -50,6 +55,8 @@ rule flip_hrc:
     params:
         in_prefix = lambda wildcards, input: input[0][:-4],
         out_prefix = lambda wildcards, output: output[0][:-4]
+    threads: 1
+    resources: mem_mb=15000, time=600
     shell:
         "plink --bfile {params.in_prefix} --exclude {input[3]} --flip {input[4]} --make-bed --out {params.out_prefix}"
 
@@ -58,20 +65,26 @@ rule update_hrc:
         expand("data/processed/{{sample}}_flipped.{ext}", ext=["bim","bed","fam"]),
         expand("data/processed/{{sample}}_{ext}", ext=["snps_exclude.txt", "snps_flip.txt", "snps_update.txt", 'snps_swap.txt'])
     output:
-        expand("data/processed/{{sample}}_HRCmatched.{ext}", ext=["bim","bed","fam"])
+        expand("data/processed/{{sample}}_HRCmatched.{ext}", ext=["bim","bed","fam"]),
+        "data/processed/{sample}_snps_swap_nodub.txt",
+        "data/processed/{sample}_snps_update_nodub.txt",
     params:
         in_prefix = lambda wildcards, input: input[0][:-4],
         out_prefix = lambda wildcards, output: output[0][:-4]
+    threads: 1
+    resources: mem_mb=15000, time=600
     shell:
-        "plink --bfile {params.in_prefix} --update-name {input[5]} --update-alleles {input[6]} --make-bed --out {params.out_prefix}"
+        "awk '!seen[$2]++' {input[5]} > {output[4]} ; "
+        "awk '!seen[$1, $3]++' {input[6]} > {output[3]} ; "
+        "plink --bfile {params.in_prefix} --update-name {output[4]} --update-alleles {output[3]} --make-bed --out {params.out_prefix}"
 
 # rule lift:
 #     input:
-#         expand("{{sample}}_upd.{ext}", ext=["bim"])
+#         expand("data/processed/{{sample}}_HRCmatched.{ext}", ext=["bim"])
 #     output:
-#         "{sample}_lifted.txt",
-#         "{sample}_not_lifted.txt",
-#         "{sample}_to_upd.txt"
+#         "data/processed/{sample}_lifted.txt",
+#         "data/processed/{sample}_not_lifted.txt",
+#         "data/processed/{sample}_to_upd.txt"
 #     log:
 #         'log/{sample}_lift.log'
 #     params:
@@ -83,11 +96,11 @@ rule update_hrc:
 
 # rule update_after_lift:
 #     input:
-#         expand("{{sample}}_upd.{ext}", ext=["bim","bed","fam"]), 
-#          "{sample}_lifted.txt",
-#         "{sample}_not_lifted.txt"
+#         expand("data/processed/{{sample}}_HRCmatched.{ext}", ext=["bim","bed","fam"]), 
+#          "data/processed/{sample}_lifted.txt",
+#         "data/processed/{sample}_not_lifted.txt"
 #     output:
-#         expand("{{sample}}_h38.{ext}", ext=["bim","bed","fam"])
+#         expand("data/processed/{{sample}}_h37.{ext}", ext=["bim","bed","fam"])
 #     params:
 #         in_prefix = lambda wildcards, input: input[0][:-4],
 #         out_prefix = lambda wildcards, output: output[0][:-4]
@@ -100,16 +113,18 @@ rule update_hrc:
 #here your actuall QC starts
 rule exclude_missingness:
     input:
-        expand("data/raw/{{sample}}.{ext}", ext=["bim","bed","fam"])
+        expand("data/processed/{{sample}}_HRCmatched.{ext}", ext=["bim","bed","fam"])
     output:
         expand("data/processed/{{sample}}_nomiss.{ext}", ext=["bim","bed","fam"])
     params:
         mind = config["mind"],
         in_prefix = lambda wildcards, input: input[0][:-4],
         out_prefix = lambda wildcards, output: output[0][:-4]
+    threads: 1
+    resources: mem_mb=15000, time=600
     shell:
         "plink --bfile {params.in_prefix} --missing --out {params.in_prefix} ; "
-        "plink --bfile {params.in_prefix} --mind {params.mind} --make-bed --out {params.out_prefix}"
+        "plink --bfile {params.in_prefix} --mind {params.mind} --make-bed --out {params.out_prefix} --allow-no-sex"
 
 #Would not work if no sex chr are present 
 # rule check_sex:
@@ -137,6 +152,8 @@ rule maf_hwe_geno:
         geno = config['geno'],
         in_prefix = lambda wildcards, input: input[0][:-4],
         out_prefix = lambda wildcards, output: output[0][:-4]
+    threads: 1
+    resources: mem_mb=15000, time=600
     shell:
         "plink --bfile {params.in_prefix} --maf {params.maf} --hwe {params.hwe} --geno {params.geno} --make-bed --out {params.out_prefix}"
 
@@ -145,13 +162,14 @@ rule relatedness:
         expand("data/processed/{{sample}}_maf.{ext}", ext=["bim","bed","fam"])
     output:
         expand("data/processed/{{sample}}_related_filter.{ext}", ext=["bim","bed","fam"]),
-        "data/processed/{sample}.het",
         "data/processed/{sample}_maf.genome"
     params:
         genome = config['genome'],
         PI_HAT = config['PI_HAT'],
         in_prefix = lambda wildcards, input: input[0][:-4],
         out_prefix = lambda wildcards, output: output[0][:-4]
+    threads: 1
+    resources: mem_mb=15000, time=600
     shell:
         "plink --bfile {params.in_prefix} --genome --max {params.genome} --out {params.in_prefix} ; "
         "awk '$10 > {params.PI_HAT}' {params.in_prefix}.genome > data/processed/{wildcards.sample}_relatives.txt ; "
@@ -164,8 +182,10 @@ rule heterozygosity_script:
         expand("data/processed/{{sample}}_related_filter.{ext}", ext=["bim","bed","fam"])
     output:
         expand("data/processed/{{sample}}_hetfail.{ext}", ext=["txt"])
+    threads: 1
+    resources: mem_mb=15000, time=600
     script:
-        "R-heterozygosity.R"
+        "scripts/R-heterozygosity.R"
 
 rule exclude_hetfail:
     input:
@@ -173,6 +193,8 @@ rule exclude_hetfail:
         expand("data/processed/{{sample}}_related_filter.{ext}", ext=["bim","bed","fam"])
     output:
         expand("data/processed/{{sample}}_nohetfail.{ext}", ext=["bim","bed","fam"])
+    threads: 1
+    resources: mem_mb=15000, time=600
     params:
         in_prefix = lambda wildcards, input: input[1][:-4],
         out_prefix = lambda wildcards, output: output[0][:-4]
@@ -248,3 +270,34 @@ rule clean_data:
         out_prefix = lambda wildcards, output: output[0][:-4]
     shell:
         "plink --bfile {params.in_prefix} --make-bed --out {params.out_prefix}" #--remove {input[3]} "
+
+rule prepare_for_imputation:
+    input:
+        expand("data/processed/{{sample}}_nohetfail.{ext}", ext=["bim","bed","fam"])
+    output:
+        "data/results/{sample}_QC.vcf.gz"
+    threads: 4
+    resources: mem_mb=20000, time=1000
+    params:
+        in_prefix = lambda wildcards, input: input[0][:-4],
+        out_prefix = lambda wildcards, output: output[0][:-7],
+        vcf = lambda wildcards, output: output[0][:-3]
+    shell:
+        "plink --bfile {params.in_prefix} --recode vcf --out {params.out_prefix} ; "
+        "bgzip {params.vcf} ; "
+        "tabix {output[0]}"
+        
+        
+rule vcf_per_chromosome:
+    input:
+        "data/results/{sample}_QC.vcf.gz"
+    output:
+        expand("data/results/{{sample}}_QC_chr{{chromosome}}.vcf.gz")
+    params:
+        chromosome= "{chromosome}",
+        sample = "{sample}"
+    threads: 4
+    resources: mem_mb=20000, time=1000
+    shell:
+        "bcftools view -O z -o {output[0]} -r chr{params.chromosome} {input[0]}" 
+
