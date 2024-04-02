@@ -49,7 +49,7 @@ flip = filter(shared, exclude==0 & action %in% c("flip", "flipswap")) %>%
          select(id_match)
 #addded -> swap 
 swap = filter(shared, exclude==0 & action %in% 'swap') %>% 
-  select(ID, a1_match, a2_match, REF, ALT)
+  select(ID,REF, ALT,a1_match, a2_match)
 # snp IDs to update
 update = filter(shared, exclude==0) %>%
          select(id_match, ID)

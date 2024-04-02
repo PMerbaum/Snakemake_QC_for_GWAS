@@ -2,11 +2,12 @@ configfile: "config/config.yaml"
 bimfile = config["BIMFILE"]
 
 def matching(bimfile):
-    output = [expand("data/results/{sample}_QC_chr{chromosome}.vcf.gz",
+    output = expand("data/processed/{sample}_HRCmatched.{ext}",
+        #[expand("data/results/{sample}_QC_chr{chromosome}.vcf.gz",
         #expand("data/processed/{sample}_HRCmatched.{ext}", 
-        #ext=["bim","bed","fam"],
-        chromosome=config['CHROMOSOMES'],
-        sample=config['SAMPLE'])] 
+        ext=["bim","bed","fam"],
+        #chromosome=config['CHROMOSOMES'],
+        sample=config['SAMPLE']) 
     
     return output
 
@@ -299,5 +300,5 @@ rule vcf_per_chromosome:
     threads: 4
     resources: mem_mb=20000, time=1000
     shell:
-        "bcftools view -O z -o {output[0]} -r chr{params.chromosome} {input[0]}" 
+        "bcftools view -O z -o {output[0]} -r {params.chromosome} {input[0]}" 
 
